@@ -60,6 +60,70 @@ mern-blog/
 - npm or yarn
 - Git
 
+## API Documentation
+
+### Authentication Routes
+- `POST /api/auth/register` — Register a new user
+  - **Request:** `{ username, email, password }`
+  - **Response:** `{ user, token }`
+- `POST /api/auth/login` — Login user
+  - **Request:** `{ email, password }`
+  - **Response:** `{ user, token }`
+- `GET /api/auth/me` — Get current user (requires Bearer token)
+  - **Response:** `{ user }`
+
+### Post Routes
+- `GET /api/posts` — Get all posts (pagination: `?page=1&limit=10`)
+- `GET /api/posts/:id` — Get single post
+- `POST /api/posts` — Create new post (requires auth)
+- `PUT /api/posts/:id` — Update post (requires auth)
+- `DELETE /api/posts/:id` — Delete post (requires auth)
+- `POST /api/posts/:id/comments` — Add comment
+- `GET /api/posts/search?q=term` — Search posts
+
+### Category Routes
+- `GET /api/categories` — Get all categories
+- `POST /api/categories` — Create category (authenticated users)
+- `PUT /api/categories/:id` — Update category (authenticated users)
+- `DELETE /api/categories/:id` — Delete category (authenticated users)
+
+### User Management (Admin Only)
+- `GET /api/users` — List all users
+- `POST /api/users` — Create a new user
+- `PUT /api/users/:id` — Update user details
+- `DELETE /api/users/:id` — Delete a user
+
+For full API details and request/response examples, see [DOCUMENTATION.md](./DOCUMENTATION.md).
+
+---
+
+## Setup Instructions
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/PLP-MERN-Stack-Development/week-4-mern-integration-assignment-ericksaddam.git
+   cd week-4-mern-integration-assignment-ericksaddam
+   ```
+2. Server setup:
+   ```bash
+   cd server
+   npm install
+   cp .env.example .env    # Update with your values
+   npm run dev
+   ```
+3. Client setup:
+   ```bash
+   cd client
+   npm install
+   cp .env.example .env    # Update with your values
+   npm run dev
+   ```
+4. Create uploads directory:
+   ```bash
+   mkdir -p server/uploads/posts
+   ```
+
+---
+
 ## Submission
 
 Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
@@ -76,4 +140,4 @@ Your work will be automatically submitted when you push to your GitHub Classroom
 - [Express.js Documentation](https://expressjs.com/)
 - [React Documentation](https://react.dev/)
 - [Node.js Documentation](https://nodejs.org/en/docs/)
-- [Mongoose Documentation](https://mongoosejs.com/docs/) 
+- [Mongoose Documentation](https://mongoosejs.com/docs/)
