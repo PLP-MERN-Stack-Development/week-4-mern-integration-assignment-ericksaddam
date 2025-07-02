@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor for authentication
+// Add a request interceptor to include the token in every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -56,9 +56,24 @@ export const postService = {
     return response.data;
   },
 
-  // Create a new post
+  // Create a new post (supports image upload)
   createPost: async (postData) => {
-    const response = await api.post('/posts', postData);
+    let response;
+    if (postData.featuredImage && postData.featuredImage instanceof File) {
+      // Use FormData for file upload
+      const formData = new FormData();
+      formData.append('title', postData.title);
+      formData.append('content', postData.content);
+      formData.append('category', postData.category);
+      formData.append('tags', Array.isArray(postData.tags) ? postData.tags.join(',') : postData.tags);
+      formData.append('featuredImage', postData.featuredImage);
+      response = await api.post('/posts', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } else {
+      // Fallback to JSON if no image
+      response = await api.post('/posts', postData);
+    }
     return response.data;
   },
 
@@ -91,14 +106,52 @@ export const postService = {
 export const categoryService = {
   // Get all categories
   getAllCategories: async () => {
-    const response = await api.get('/categories');
-    return response.data;
+    try {
+      const response = await api.get('/categories');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
   },
 
   // Create a new category
   createCategory: async (categoryData) => {
-    const response = await api.post('/categories', categoryData);
-    return response.data;
+    try {
+      console.log('Sending category data:', categoryData);
+      const response = await api.post('/categories', categoryData);
+      console.log('Category creation successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw error;
+    }
+  },
+
+  // Update a category
+  updateCategory: async (id, categoryData) => {
+    try {
+      console.log(`Updating category ${id} with data:`, categoryData);
+      const response = await api.put(`/categories/${id}`, categoryData);
+      console.log('Category update successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw error;
+    }
+  },
+
+  // Delete a category
+  deleteCategory: async (id) => {
+    try {
+      console.log(`Deleting category ${id}`);
+      const response = await api.delete(`/categories/${id}`);
+      console.log('Category deletion successful');
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
   },
 };
 
@@ -112,12 +165,34 @@ export const authService = {
 
   // Login user
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    try {
+      const response = await api.post('/auth/login', credentials);
+      
+      if (!response.data) {
+        throw new Error('No response data received');
+      }
+      
+      // Handle different response formats
+      const token = response.data.token || response.data.data?.token;
+      const userData = response.data.user || response.data.data?.user || response.data;
+      
+      if (!token) {
+        throw new Error('No authentication token received');
+      }
+      
+      localStorage.setItem('token', token);
+      
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        return { ...response.data, user: userData };
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Login failed';
+      throw new Error(errorMessage);
     }
-    return response.data;
   },
 
   // Logout user
@@ -133,4 +208,4 @@ export const authService = {
   },
 };
 
-export default api; 
+export default api;
